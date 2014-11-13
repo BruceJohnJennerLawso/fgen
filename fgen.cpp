@@ -116,8 +116,20 @@ std::string Input_string(std::string prompt)
 	}
 }
 
+bool typeArgumentIsC(std::string type_argument)
+{	// generalization here, C and C++
+	if((type_argument == "-cpp")||(type_argument == "-hpp")||(type_argument == "-h")||(type_argument == "-c"))	
+	{	return true;
+	}
+	return false;
+}
+
+
+
 int Create_filetype(std::string type_argument, std::string name_argument, std::string style_character)
-{	if(Get_type_extension(type_argument) == ".")
+{	
+	// screw functional programming, Im causing side effects
+	if(Get_type_extension(type_argument) == ".")
 	{	return 2;
 		// uhhh, oh
 		// "." was the error code for basically file type not recognized
@@ -140,52 +152,75 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 	std::ofstream file(dotslash.c_str());
 	// create a file with the name we specified
 	if(file.is_open())
-	{	file << style_character << style_character << " " << name_argument << " ";
-		column -= 4;
-		column -= name_argument.size();
-		for(unsigned int cy = 1; cy != column; ++cy)
-		{	file << style_character;
-		}	file << style_character << std::endl;	
-		comments = Input_string("Input file comments, input / to exit: ");
-		while(comments != "/")
-		{	if(comments.size() > 74)
-			{	std::cout << "input too long, must be 74 characters or shorter\n" << std::endl;
-			}
-			else
-			{	file << style_character << style_character << " ";
-				file << comments << " ";
-				if(comments.size() < 74)
-				{	unsigned int remaining_space = (74- comments.size());
-					for(unsigned int cy = 0; cy != remaining_space; ++cy)
-					{	file << style_character;
-					}	file << style_character;
-				}
-				file << style_character << std::endl;
-			}
+	{	
+		if((typeArgumentIsC(type_argument) == true)||(type_argument == "-py"))
+		{	
+			// had to completely rethink the flow for php,
+			//  totally different idea from C and py
+
+			file << style_character << style_character << " " << name_argument << " ";
+			column -= 4;
+			column -= name_argument.size();
+			for(unsigned int cy = 1; cy != column; ++cy)
+			{	file << style_character;
+			}	file << style_character << std::endl;	
+			
 			comments = Input_string("Input file comments, input / to exit: ");
-		}
-		for(unsigned int cy = 1; cy != 80; ++cy)
-		{	file << style_character;
-		}	file << style_character << std::endl;
-		if(Get_style_character(type_argument) == "/")
-		{	// its C, yay
-			file << "//#include <std_files>" << std::endl;
-			file << "//#include \"Headers.h\"\n" << std::endl;				
-			file << "//#include \"Source.c\"\n" << std::endl;
-			file << "//#include \"Headers.hpp\"" << std::endl;		
-			file << "//#include \"Source.cpp\"\n\n" << std::endl;
+		
+			while(comments != "/")
+			{	if(comments.size() > 74)
+				{	std::cout << "input too long, must be 74 characters or shorter\n" << std::endl;
+				}
+				else
+				{	file << style_character << style_character << " ";
+					file << comments << " ";
+					if(comments.size() < 74)
+					{	unsigned int remaining_space = (74- comments.size());
+						for(unsigned int cy = 0; cy != remaining_space; ++cy)
+						{	file << style_character;
+						}	file << style_character;
+					}
+					file << style_character << std::endl;
+				}
+				comments = Input_string("Input file comments, input / to exit: ");
+			}
+			for(unsigned int cy = 1; cy != 80; ++cy)
+			{	file << style_character;
+			}	file << style_character << std::endl;
+		
+			if(typeArgumentIsC(type_argument) == true)
+			{	// its C, yay
+				file << "//#include <std_files>" << std::endl;
+				file << "//#include \"Headers.h\"\n" << std::endl;				
+				file << "//#include \"Source.c\"\n" << std::endl;
+				file << "//#include \"Headers.hpp\"" << std::endl;		
+				file << "//#include \"Source.cpp\"\n\n" << std::endl;
+		
+		
+				if(Is_header(type_argument)== true)
+				{	std::string header_guard = Input_string("Input header guard name: ");
+					std::string start_guard = "#ifndef ";
+					start_guard.append(header_guard);
+					file << start_guard << std::endl;
+					std::string def_guard = "#define ";
+					def_guard.append(header_guard);
+					file << def_guard << std::endl;
+					file << "\n\n#endif" << std::endl;
+				}
+			}
 		}
 		
-		if(Is_header(type_argument))
-		{	std::string header_guard = Input_string("Input header guard name: ");
-			std::string start_guard = "#ifndef ";
-			start_guard.append(header_guard);
-			file << start_guard << std::endl;
-			std::string def_guard = "#define ";
-			def_guard.append(header_guard);
-			file << def_guard << std::endl;
-			file << "\n\n#endif" << std::endl;
+		
+
+		else if(type_argument == "-php")
+		{	file << "<!-- " << name_argument  <<  " -->" << std::endl;
+			file << "<?php\n" << std::endl;
+			file << "?>" << std::endl; 
 		}
+		
+		
+		
+
 		
 		file.close();
 		return 0;
@@ -220,6 +255,9 @@ std::string Get_type_extension(std::string type_argument)
 	else if(type_argument == "-py")
 	{	output = ".py";
 	}	
+	else if(type_argument == "-php")
+	{	output = ".php";
+	}
 	else
 	{	std::cout << "Unknown file type, current fgen supported filetypes are: " << std::endl;
 		std::cout << "-cpp" << std::endl;
@@ -227,6 +265,7 @@ std::string Get_type_extension(std::string type_argument)
 		std::cout << "-c" << std::endl;
 		std::cout << "-h" << std::endl;
 		std::cout << "-py" << std::endl;		
+		std::cout << "-php" << std::endl;
 		output = ".";
 		// uhh, lets just stick some chewing gum here...
 	}
@@ -246,6 +285,13 @@ std::string Get_style_character(std::string type_argument)
 	}
 	else if(type_argument == "-h")
 	{	output = "/";
+	}
+	else if(type_argument == "-php")
+	{	output = "/";
+		// Im just making this up as I go here, might not actually work
+		// properly if the comment isnt inside php tags
+		// To be safe, Im gonna generate the file with <?php ?> tags
+		// and worry about html later
 	}
 	else if(type_argument == "-py")
 	{	output = "#";
