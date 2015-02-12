@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo cp -i fgen /usr/bin
+
+exit 0
