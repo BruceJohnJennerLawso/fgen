@@ -69,7 +69,7 @@ void Print_line(std::string line)
 std::string Input_string(std::string prompt)
 {	std::string data = "";
 	while(true)
-	{	std::cout << std::endl;
+	{	//std::cout << std::endl;
 		std::cout << prompt;
 		while(std::getline(std::cin, data))
 		{	if (data.size() == 0)
