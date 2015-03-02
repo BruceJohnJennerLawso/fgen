@@ -18,6 +18,7 @@ void Print_line(std::string line);
 void Print_start_message(std::string file_name, std::string file_type);
 
 std::string Get_type_extension(std::string type_argument);
+bool Is_header(std::string type_argument);
 
 std::string Input_string(std::string prompt);	
 
@@ -136,10 +137,22 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 		{	file << style_character;
 		}	file << style_character << std::endl;
 		file << "//#include <std_files>" << std::endl;
-		file << "//#include \"Headers.h\"" << std::endl;				
+		file << "//#include \"Headers.h\"\n" << std::endl;				
 		file << "//#include \"Source.c\"\n" << std::endl;
 		file << "//#include \"Headers.hpp\"" << std::endl;		
-		file << "//#include \"Source.cpp\"\n" << std::endl;
+		file << "//#include \"Source.cpp\"\n\n" << std::endl;
+		
+		if(Is_header(type_argument))
+		{	std::string header_guard = Input_string("Input header guard name: ");
+			std::string start_guard = "#ifndef ";
+			start_guard.append(header_guard);
+			file << start_guard << std::endl;
+			std::string def_guard = "#define ";
+			def_guard.append(header_guard);
+			file << def_guard << std::endl;
+			file << "\n\n#endif" << std::endl;
+		}
+		
 		file.close();
 		return 0;
 	}
@@ -182,3 +195,14 @@ std::string Get_type_extension(std::string type_argument)
 	return output;
 }
 
+bool Is_header(std::string type_argument)
+{	if(type_argument == "-hpp")
+	{	return true;
+	}
+	else if(type_argument == "-h")
+	{	return true;
+	}
+	else
+	{	return false;
+	}	
+}
