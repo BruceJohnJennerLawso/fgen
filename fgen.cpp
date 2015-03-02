@@ -15,7 +15,12 @@
 void Print_text(std::string text);
 void Print_line(std::string line);
 
+void Print_start_message(std::string file_name, std::string file_type);
+
+std::string Get_type_extension(std::string type_argument);
+
 std::string Input_string(std::string prompt);	
+
 
 int Create_filetype(std::string type_argument, std::string name_argument, std::string style_character);
 
@@ -36,17 +41,25 @@ int main(int argc, char* argv[])
 	else if(argc == 3)
 	{	std::string argument_one = argv[1];
 		std::string argument_two = argv[2];
+		
+		
+		Print_start_message(argument_two, argument_one);
 		return Create_filetype(argument_one, argument_two, "/");
 	}
 	else if(argc == 4)
 	{	std::string argument_one = argv[1];
 		std::string argument_two = argv[2];
 		std::string argument_three = argv[3];
-		if(Create_filetype(argument_one, argument_three, "/") != 0)
-		{	return Create_filetype(argument_one, argument_three, "/");
-		}	// check if the first type is good before moving on to the next one
+
+		Print_start_message(argument_three, argument_one);
+		int err = Create_filetype(argument_one, argument_three, "/");
+		if(err == 0)
+		{	// we check to see if everything went okay
+			Print_start_message(argument_three, argument_two);
+			return Create_filetype(argument_two, argument_three, "/");
+		}
 		else
-		{	return Create_filetype(argument_two, argument_three, "/");
+		{	return err;
 		}
 	}	
 	else
@@ -83,25 +96,11 @@ std::string Input_string(std::string prompt)
 }
 
 int Create_filetype(std::string type_argument, std::string name_argument, std::string style_character)
-{	if(type_argument == "-cpp")
-	{	name_argument.append(".cpp");
+{	if(Get_type_extension(type_argument) == ".")
+	{	return 2;
 	}
-	else if(type_argument == "-hpp")
-	{	name_argument.append(".hpp");
-	}
-	else if(type_argument == "-c")
-	{	name_argument.append(".c");
-	}
-	else if(type_argument == "-h")
-	{	name_argument.append(".h");
-	}	// this is inefficient, but I cant remember how to do it properly
 	else
-	{	std::cout << "Unknown file type, current fgen supported filetypes are: " << std::endl;
-		std::cout << "-cpp" << std::endl;
-		std::cout << "-hpp" << std::endl;
-		std::cout << "-c" << std::endl;
-		std::cout << "-h" << std::endl;
-		return -2;
+	{	name_argument.append(Get_type_extension(type_argument));
 	}
 	unsigned int column = 80;
 	std::string dotslash = "./";
@@ -148,5 +147,38 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 	{	std::cout << "unable to create " << type_argument << " file" << std::endl;
 		return -3;
 	}			
+}
+
+void Print_start_message(std::string file_name, std::string file_type)
+{	std::string output = "File ";
+	output.append(file_name);
+	output.append(Get_type_extension(file_type));
+	Print_line(output);
+}
+
+std::string Get_type_extension(std::string type_argument)
+{	std::string output;
+	if(type_argument == "-cpp")
+	{	output = ".cpp";
+	}
+	else if(type_argument == "-hpp")
+	{	output = ".hpp";
+	}
+	else if(type_argument == "-c")
+	{	output = ".c";
+	}
+	else if(type_argument == "-h")
+	{	output = ".h";
+	}	
+	else
+	{	std::cout << "Unknown file type, current fgen supported filetypes are: " << std::endl;
+		std::cout << "-cpp" << std::endl;
+		std::cout << "-hpp" << std::endl;
+		std::cout << "-c" << std::endl;
+		std::cout << "-h" << std::endl;
+		output = ".";
+		// uhh, lets just stick some chewing gum here...
+	}
+	return output;
 }
 
