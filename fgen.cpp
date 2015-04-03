@@ -18,6 +18,8 @@ void Print_line(std::string line);
 void Print_start_message(std::string file_name, std::string file_type);
 
 std::string Get_type_extension(std::string type_argument);
+std::string Get_style_character(std::string type_argument);
+
 bool Is_header(std::string type_argument);
 
 std::string Input_string(std::string prompt);	
@@ -28,8 +30,7 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 int main(int argc, char* argv[])
 {	std::string Style_character = "/";
 	if(argc <= 1)
-	{	//std::cout << argv[0] << std::endl;
-		std::cout << "Incorrect number of arguments" << std::endl;
+	{	std::cout << "Incorrect number of arguments" << std::endl;
 		std::cout << "Try fgen '-filetype' 'filename' to generate a new source file" << std::endl;
 		return -1;
 	}
@@ -37,27 +38,38 @@ int main(int argc, char* argv[])
 	{	std::string argument_one = argv[1];
 		std::cout << "Incorrect number of arguments" << std::endl;
 		std::cout << "Try fgen '-filetype' 'filename' to generate a new source file" << std::endl;
+		// we need a bare minimum of 2 arguments to actually do stuff
 		return -1;		
 	}
 	else if(argc == 3)
 	{	std::string argument_one = argv[1];
 		std::string argument_two = argv[2];
-		
-		
+		// two arguments, so we have a filetype and a filename (hopefully)
 		Print_start_message(argument_two, argument_one);
-		return Create_filetype(argument_one, argument_two, "/");
+		// echo the name of the file just to make usage a bit nicer
+		return Create_filetype(argument_one, argument_two, Get_style_character(argument_one));
+		// try to create the file if possible and return whatever the function
+		// spits out to indicate an error code
 	}
 	else if(argc == 4)
 	{	std::string argument_one = argv[1];
 		std::string argument_two = argv[2];
 		std::string argument_three = argv[3];
-
+		// three arguments, which we interpret as being two files with the same
+		// name, but different file types (ie an .hpp/.cpp or .h/.c pair,
+		// usually for distinct classes in C++)
 		Print_start_message(argument_three, argument_one);
-		int err = Create_filetype(argument_one, argument_three, "/");
+		// say hello, let us know the names of the files we will be creating
+		// today
+		int err = Create_filetype(argument_one, argument_three, Get_style_character(argument_one));
+		// create the file with the first type specified
 		if(err == 0)
 		{	// we check to see if everything went okay
+			// if not we spit out an error value and terminate
 			Print_start_message(argument_three, argument_two);
-			return Create_filetype(argument_two, argument_three, "/");
+			// if errything is good, we let us know the name of the next file,
+			// and we try to create it
+			return Create_filetype(argument_two, argument_three, Get_style_character(argument_two));
 		}
 		else
 		{	return err;
@@ -67,6 +79,7 @@ int main(int argc, char* argv[])
 	{	std::cout << "Too many arguments for fgen" << std::endl;
 		std::cout << "Try fgen '-filetype' 'filename' to generate a new source file" << std::endl;
 		std::cout << argc << " Arguments" << std::endl;
+		// too many arguments were specified, so we really didnt know what to do
 		return -1;
 		// let them know something went wrong
 	}
@@ -74,6 +87,7 @@ int main(int argc, char* argv[])
 
 void Print_text(std::string text)
 {	std::cout << text;
+	// why did I have to learn C++ first...
 }
 
 void Print_line(std::string line)
@@ -85,12 +99,18 @@ std::string Input_string(std::string prompt)
 	while(true)
 	{	//std::cout << std::endl;
 		std::cout << prompt;
+		// write the prompt (ie "Input Data: " to get the user to input whatever
 		while(std::getline(std::cin, data))
-		{	if (data.size() == 0)
-			{	continue;	
+		{	// std::getline cycles through the input data contained in the 
+			// cin stream and stores it in a string called data
+			if (data.size() == 0)
+			{	// If there was nothing in it, we jump back to the top of the
+				// loop and try again
+				continue;	
 			}	
 			else
 			{	return data;
+				// send whatever the user typed
 			}	
 		}
 	}
@@ -99,15 +119,26 @@ std::string Input_string(std::string prompt)
 int Create_filetype(std::string type_argument, std::string name_argument, std::string style_character)
 {	if(Get_type_extension(type_argument) == ".")
 	{	return 2;
+		// uhhh, oh
+		// "." was the error code for basically file type not recognized
 	}
 	else
 	{	name_argument.append(Get_type_extension(type_argument));
+		// slap on the extension to the name of the file so we have a complete
+		// filename , ie file.extension
 	}
 	unsigned int column = 80;
+	// personal preference is not to exceed 80 chars wide in a file, although
+	// I dont care enough to force actual code into that limit, just comments
+	
+	// this could be read from a cfg file later
 	std::string dotslash = "./";
+	// ./ being the current directory here
 	std::string comments = "";	
 	dotslash.append(name_argument);
+	// ./filename.extension
 	std::ofstream file(dotslash.c_str());
+	// create a file with the name we specified
 	if(file.is_open())
 	{	file << style_character << style_character << " " << name_argument << " ";
 		column -= 4;
@@ -136,11 +167,14 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 		for(unsigned int cy = 1; cy != 80; ++cy)
 		{	file << style_character;
 		}	file << style_character << std::endl;
-		file << "//#include <std_files>" << std::endl;
-		file << "//#include \"Headers.h\"\n" << std::endl;				
-		file << "//#include \"Source.c\"\n" << std::endl;
-		file << "//#include \"Headers.hpp\"" << std::endl;		
-		file << "//#include \"Source.cpp\"\n\n" << std::endl;
+		if(Get_style_character(type_argument) == "/")
+		{	// its C, yay
+			file << "//#include <std_files>" << std::endl;
+			file << "//#include \"Headers.h\"\n" << std::endl;				
+			file << "//#include \"Source.c\"\n" << std::endl;
+			file << "//#include \"Headers.hpp\"" << std::endl;		
+			file << "//#include \"Source.cpp\"\n\n" << std::endl;
+		}
 		
 		if(Is_header(type_argument))
 		{	std::string header_guard = Input_string("Input header guard name: ");
@@ -182,6 +216,9 @@ std::string Get_type_extension(std::string type_argument)
 	}
 	else if(type_argument == "-h")
 	{	output = ".h";
+	}
+	else if(type_argument == "-py")
+	{	output = ".py";
 	}	
 	else
 	{	std::cout << "Unknown file type, current fgen supported filetypes are: " << std::endl;
@@ -189,6 +226,37 @@ std::string Get_type_extension(std::string type_argument)
 		std::cout << "-hpp" << std::endl;
 		std::cout << "-c" << std::endl;
 		std::cout << "-h" << std::endl;
+		std::cout << "-py" << std::endl;		
+		output = ".";
+		// uhh, lets just stick some chewing gum here...
+	}
+	return output;
+}
+
+std::string Get_style_character(std::string type_argument)
+{	std::string output;
+	if(type_argument == "-cpp")
+	{	output = "/";
+	}
+	else if(type_argument == "-hpp")
+	{	output = "/";
+	}
+	else if(type_argument == "-c")
+	{	output = "/";
+	}
+	else if(type_argument == "-h")
+	{	output = "/";
+	}
+	else if(type_argument == "-py")
+	{	output = "#";
+	}	
+	else
+	{	std::cout << "Unknown file type, current fgen supported filetypes are: " << std::endl;
+		std::cout << "-cpp" << std::endl;
+		std::cout << "-hpp" << std::endl;
+		std::cout << "-c" << std::endl;
+		std::cout << "-h" << std::endl;
+		std::cout << "-py" << std::endl;		
 		output = ".";
 		// uhh, lets just stick some chewing gum here...
 	}
