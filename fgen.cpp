@@ -25,7 +25,17 @@ bool Is_header(std::string type_argument);
 std::string Input_string(std::string prompt);	
 
 
-int Create_filetype(std::string type_argument, std::string name_argument, std::string style_character);
+bool noExtensionFlag(std::string input)
+{
+	if((input == "-noexten")||(input == "-noext"))
+	{	return true;
+	}
+	return false;
+}
+
+int Create_filetype(std::string type_argument, std::string name_argument, std::string style_character, bool no_extension);
+
+
 
 int main(int argc, char* argv[])
 {	std::string Style_character = "/";
@@ -47,7 +57,7 @@ int main(int argc, char* argv[])
 		// two arguments, so we have a filetype and a filename (hopefully)
 		Print_start_message(argument_two, argument_one);
 		// echo the name of the file just to make usage a bit nicer
-		return Create_filetype(argument_one, argument_two, Get_style_character(argument_one));
+		return Create_filetype(argument_one, argument_two, Get_style_character(argument_one), false);
 		// try to create the file if possible and return whatever the function
 		// spits out to indicate an error code
 	}
@@ -61,7 +71,7 @@ int main(int argc, char* argv[])
 		Print_start_message(argument_three, argument_one);
 		// say hello, let us know the names of the files we will be creating
 		// today
-		int err = Create_filetype(argument_one, argument_three, Get_style_character(argument_one));
+		int err = Create_filetype(argument_one, argument_three, Get_style_character(argument_one), false);
 		// create the file with the first type specified
 		if(err == 0)
 		{	// we check to see if everything went okay
@@ -69,7 +79,35 @@ int main(int argc, char* argv[])
 			Print_start_message(argument_three, argument_two);
 			// if errything is good, we let us know the name of the next file,
 			// and we try to create it
-			return Create_filetype(argument_two, argument_three, Get_style_character(argument_two));
+			return Create_filetype(argument_two, argument_three, Get_style_character(argument_two), false);
+		}
+		else
+		{	return err;
+		}
+	}
+	else if(argc == 5)
+	{	std::string argument_four = argv[4];
+		
+		bool no_ext = noExtensionFlag(argument_four);
+
+		std::string argument_one = argv[1];
+		std::string argument_two = argv[2];
+		std::string argument_three = argv[3];
+		// three arguments, which we interpret as being two files with the same
+		// name, but different file types (ie an .hpp/.cpp or .h/.c pair,
+		// usually for distinct classes in C++)
+		Print_start_message(argument_three, argument_one);
+		// say hello, let us know the names of the files we will be creating
+		// today
+		int err = Create_filetype(argument_one, argument_three, Get_style_character(argument_one), no_ext);
+		// create the file with the first type specified
+		if(err == 0)
+		{	// we check to see if everything went okay
+			// if not we spit out an error value and terminate
+			Print_start_message(argument_three, argument_two);
+			// if errything is good, we let us know the name of the next file,
+			// and we try to create it
+			return Create_filetype(argument_two, argument_three, Get_style_character(argument_two), no_ext);
 		}
 		else
 		{	return err;
@@ -126,7 +164,7 @@ bool typeArgumentIsC(std::string type_argument)
 
 
 
-int Create_filetype(std::string type_argument, std::string name_argument, std::string style_character)
+int Create_filetype(std::string type_argument, std::string name_argument, std::string style_character, bool no_extension)
 {	
 	// screw functional programming, Im causing side effects
 	if(Get_type_extension(type_argument) == ".")
@@ -147,7 +185,10 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 	std::string dotslash = "./";
 	// ./ being the current directory here
 	std::string comments = "";	
-	dotslash.append(name_argument);
+	if(no_extension == false)
+	{
+		dotslash.append(name_argument);
+	}
 	// ./filename.extension
 	std::ofstream file(dotslash.c_str());
 	// create a file with the name we specified
@@ -217,6 +258,13 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 			file << "<?php\n" << std::endl;
 			file << "?>" << std::endl; 
 		}
+		else if(type_argument == "-sh")
+		{	file << "#!/bin/bash" << std::endl;
+			file << "## " << name_argument << " ##" << std::endl;
+			file << "" << std::endl;
+			file << "exit 0" << std::endl;
+		
+		}
 		
 		
 		
@@ -258,6 +306,9 @@ std::string Get_type_extension(std::string type_argument)
 	else if(type_argument == "-php")
 	{	output = ".php";
 	}
+	else if(type_argument == "-sh")
+	{	output = "sh";
+	}
 	else
 	{	std::cout << "Unknown file type, current fgen supported filetypes are: " << std::endl;
 		std::cout << "-cpp" << std::endl;
@@ -266,6 +317,7 @@ std::string Get_type_extension(std::string type_argument)
 		std::cout << "-h" << std::endl;
 		std::cout << "-py" << std::endl;		
 		std::cout << "-php" << std::endl;
+		std::cout << "-sh" << std::endl;
 		output = ".";
 		// uhh, lets just stick some chewing gum here...
 	}
@@ -294,6 +346,9 @@ std::string Get_style_character(std::string type_argument)
 		// and worry about html later
 	}
 	else if(type_argument == "-py")
+	{	output = "#";
+	}
+	else if(type_argument == "-sh")
 	{	output = "#";
 	}	
 	else
