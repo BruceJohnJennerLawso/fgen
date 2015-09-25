@@ -12,6 +12,19 @@
 #include <string>
 #include <fstream>
 
+#define RPITHINK
+
+#ifdef RPITHINK
+
+#define scrWidth 30
+
+#else
+
+#define scrWidth 80
+
+#endif
+
+
 void Print_text(std::string text);
 void Print_line(std::string line);
 
@@ -177,7 +190,7 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 		// slap on the extension to the name of the file so we have a complete
 		// filename , ie file.extension
 	}
-	unsigned int column = 80;
+	unsigned int column = scrWidth;
 	// personal preference is not to exceed 80 chars wide in a file, although
 	// I dont care enough to force actual code into that limit, just comments
 	
@@ -209,14 +222,14 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 			comments = Input_string("Input file comments, input / to exit: ");
 		
 			while(comments != "/")
-			{	if(comments.size() > 74)
-				{	std::cout << "input too long, must be 74 characters or shorter\n" << std::endl;
+			{	if(comments.size() > (scrWidth -6))
+				{	std::cout << "input too long, must be " << (scrWidth -6) << " characters or shorter\n" << std::endl;
 				}
 				else
 				{	file << style_character << style_character << " ";
 					file << comments << " ";
-					if(comments.size() < 74)
-					{	unsigned int remaining_space = (74- comments.size());
+					if(comments.size() < (scrWidth -6))
+					{	unsigned int remaining_space = ((scrWidth -6)- comments.size());
 						for(unsigned int cy = 0; cy != remaining_space; ++cy)
 						{	file << style_character;
 						}	file << style_character;
@@ -225,7 +238,7 @@ int Create_filetype(std::string type_argument, std::string name_argument, std::s
 				}
 				comments = Input_string("Input file comments, input / to exit: ");
 			}
-			for(unsigned int cy = 1; cy != 80; ++cy)
+			for(unsigned int cy = 1; cy != scrWidth; ++cy)
 			{	file << style_character;
 			}	file << style_character << std::endl;
 		
