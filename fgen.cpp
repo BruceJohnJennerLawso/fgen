@@ -12,7 +12,7 @@
 #include <string>
 #include <fstream>
 
-#define RPITHINK
+//#define RPITHINK
 
 #ifdef RPITHINK
 
